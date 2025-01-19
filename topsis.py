@@ -1,61 +1,51 @@
 import numpy as np
 import pandas as pd
 
-def topsis_analysis(data, weights, impacts):
-    """
-    Perform TOPSIS analysis on a given dataset.
-    :param data: Input dataframe with alternatives and criteria
-    :param weights: List of weights corresponding to each criterion
-    :param impacts: List of impacts ('maximise' or 'minimise') for each criterion
-    :return: Dataframe with TOPSIS scores and rankings
-    """
-    # All the functions from your code embedded here
-    def convert_categorical_to_numerical(df):
-        for column in df.select_dtypes(include=['object']).columns:
-            df[column] = df[column].astype('category').cat.codes
+def perform_topsis(dataframe, criteria_weights, criteria_impacts):
+    def encode_categorical_columns(df):
+        for col in df.select_dtypes(include=['object']).columns:
+            df[col] = df[col].astype('category').cat.codes
         return df
 
-    def vector_normalisation(column):
-        return column / np.sqrt(np.sum(column ** 2))
+    def normalize_column(col):
+        return col / np.sqrt(np.sum(col ** 2))
 
-    def create_normalised_decision_matrix(df):
-        return df.apply(vector_normalisation, axis=0)
+    def compute_normalized_matrix(df):
+        return df.apply(normalize_column, axis=0)
 
-    def assign_weights(matrix, weights):
+    def apply_weights_to_matrix(matrix, weights):
         return matrix * weights
 
-    def find_ideal_best_and_worst(matrix, impacts):
-        ideal_best = []
-        ideal_worst = []
-        for i, impact in enumerate(impacts):
-            if impact == 'maximise':
-                ideal_best.append(matrix.iloc[:, i].max())
-                ideal_worst.append(matrix.iloc[:, i].min())
-            elif impact == 'minimise':
-                ideal_best.append(matrix.iloc[:, i].min())
-                ideal_worst.append(matrix.iloc[:, i].max())
+    def determine_ideal_solutions(matrix, impacts):
+        best_values = []
+        worst_values = []
+        for index, impact in enumerate(impacts):
+            if impact == 'maximize':
+                best_values.append(matrix.iloc[:, index].max())
+                worst_values.append(matrix.iloc[:, index].min())
+            elif impact == 'minimize':
+                best_values.append(matrix.iloc[:, index].min())
+                worst_values.append(matrix.iloc[:, index].max())
             else:
-                raise ValueError("Impact must be 'maximise' or 'minimise'")
-        return np.array(ideal_best), np.array(ideal_worst)
+                raise ValueError("Each impact must be either 'maximize' or 'minimize'.")
+        return np.array(best_values), np.array(worst_values)
 
-    def calculate_euclidean_distance(matrix, ideal):
+    def compute_euclidean_distances(matrix, ideal):
         return np.sqrt(np.sum((matrix - ideal) ** 2, axis=1))
 
-    def calculate_performance_score(distance_to_best, distance_to_worst):
-        return distance_to_worst / (distance_to_best + distance_to_worst)
+    def compute_relative_closeness(d_plus, d_minus):
+        return d_minus / (d_plus + d_minus)
 
-    # Main TOPSIS implementation
-    data = convert_categorical_to_numerical(data)
-    normalised_matrix = create_normalised_decision_matrix(data)
-    weighted_matrix = assign_weights(normalised_matrix, weights)
-    ideal_best, ideal_worst = find_ideal_best_and_worst(weighted_matrix, impacts)
-    distance_to_best = calculate_euclidean_distance(weighted_matrix.values, ideal_best)
-    distance_to_worst = calculate_euclidean_distance(weighted_matrix.values, ideal_worst)
-    performance_scores = calculate_performance_score(distance_to_best, distance_to_worst)
+    dataframe = encode_categorical_columns(dataframe)
+    normalized_matrix = compute_normalized_matrix(dataframe)
+    weighted_matrix = apply_weights_to_matrix(normalized_matrix, criteria_weights)
+    ideal_best, ideal_worst = determine_ideal_solutions(weighted_matrix, criteria_impacts)
+    distances_to_best = compute_euclidean_distances(weighted_matrix.values, ideal_best)
+    distances_to_worst = compute_euclidean_distances(weighted_matrix.values, ideal_worst)
+    scores = compute_relative_closeness(distances_to_best, distances_to_worst)
 
-    result = data.copy()
-    result['TOPSIS Score'] = performance_scores
-    result['Rank'] = performance_scores.argsort()[::-1] + 1
+    results = dataframe.copy()
+    results['TOPSIS Score'] = scores
+    results['Rank'] = scores.argsort()[::-1] + 1
 
-    return result
-
+    return results
