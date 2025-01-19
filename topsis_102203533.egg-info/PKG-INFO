@@ -1,0 +1,23 @@
+Metadata-Version: 2.2
+Name: topsis_102203533
+Version: 0.1.0
+Summary: Testing Topsis 
+Home-page: https://github.com/your_username/my_dummy_package
+Author: Preetish Mangi
+Author-email: pmangi_be22@thapar.edu
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+License-File: LICENCE
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: requires-python
+Dynamic: summary
+
+The TOPSIS (Technique for Order Preference by Similarity to Ideal Solution) library provides an implementation of the TOPSIS decision-making method. This technique is used to rank alternatives based on multiple criteria by comparing their distance from an ideal best and an ideal worst solution.
